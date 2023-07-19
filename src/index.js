@@ -1,11 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const rateLimit = require('express-rate-limit');
-const jwt = require('jsonwebtoken');
+const morgan = require("morgan");
 
-
-const usersRouter = require("./routes/users.routes");
-const paymentRouter = require("./routes/payment.routes");
 const company = require("./routes/companies.routes");
 const connectDB = require("./configs/database");
 
@@ -22,14 +19,9 @@ const limiter = rateLimit({
 });
 
 // Apply the rate limiting middleware to all requests
-app.use(limiter)
-
-
-
+app.use(limiter);
 app.use(express.json());
-app.use("/users", usersRouter);
-app.use("/pay", paymentRouter);
-app.use("/getusers", usersRouter);
+app.use(morgan('combined'));
 app.use("/companies", company);
 
 
@@ -37,7 +29,8 @@ app.use("/companies", company);
 connectDB(process.env.MONGO_URI)
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "I am running" });
+  res.status(200).json({ 
+	message: "I am running" });
 });
 
 

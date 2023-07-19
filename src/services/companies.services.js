@@ -1,9 +1,11 @@
-// const Company = require("../models/company.model")
 const Company = require("../models/company.model");
+const Staff = require("../models/staff.model");
 const jwt = require("jsonwebtoken");
-const staff = require("../models/staff.model");
 const bcrypt = require("bcrypt");
 const responses = require("../utils/response");
+const generateResetPin = require('../utils/generateResetPin');
+const sendMail = require("../utils/sendMail");
+
 
 async function createCompany(payload) {
 
@@ -15,56 +17,30 @@ async function createCompany(payload) {
      */
         const foundName = await Company.findOne({name:payload.name});
         if (foundName) {
-             return responses.buildFailureResponse("Company name already exists", 400)
-            //     {message: "Company name already exists",
-            //     statusCode: 400,
-            //     status: "failure"
-            // }
+            return responses.buildFailureResponse("Company name already exists", 400)
         }
-        const foundEmail = await Company.findOne({email:payload.email});
+        const foundEmail = await Company.findOne({contactEmail:payload.contactEmail});
         if (foundEmail) {
-            return responses.buildFailureResponse("Company email already registered", 400)
-            //     {message: "Company email already registered",
-            //     statusCode: 400,
-            //     status: "failure"
-            // }
+            return responses.buildFailureResponse("Company email already registered", 400)   
         }
-        // const foundregNo = await Company.findOne({regNo:payload.regNo});
-        // if (foundregNo) {
-        //     return {
-        //         message: "RegNo already registered",
-        //         statusCode: 400,
-        //         status: "failure"
-        //     }
-        // }
-        // now that we have validated our data, let us create the db
-        // const newCompany = new Company({
-        //     name: payload.name,
-        //     contactEmail: payload.contactEmail,
-        //     regNo: payload.regNo
-        // });
-        // const savedCompany = await newCompany.save();
-        // return savedCompany; // tabNine suggestions
+        const foundregNo = await Company.findOne({regNo: payload.regNo});
+        if (foundregNo) {
+            return responses.buildFailureResponse ("Registration number already exists", 400)
+        }
+
+        // now that we have validated our data, lets create a new company
         const newCompany = await Company.create(payload)
         return responses.buildSuccessResponse("Company created successfully", 201, newCompany);
-//             message: "Company created successfully",
-//             statusCode: 201,
-//             status: "success",
-//             data: newCompany
-//         }; // tutors suggestion
-}
+};
 
 async function createAdmin (payload) {
 
-    const foundEmailOrPhone = await Staff.findOne ({$or: 
-    [{email: payload.email}, {phone: payload.phone}
+    const foundEmailOrPhone = await Staff.findOne ({$or: [
+        {email: payload.email},
+        {phone: payload.phone}
     ]})
     if (foundEmailOrPhone) {
-    return responses.buildFailureResponse("STaff phone or email already registered", 400)
-    //     {message: "Staff phone or email already registered",
-    //     status: "failure",
-    //     statusCode: 400
-    // }
+        return responses.buildFailureResponse("Staff phone or email already registered", 400)
     } 
     // to hash a password
     const saltRounds = 10;
@@ -81,33 +57,30 @@ async function createAdmin (payload) {
 
 async function createStaff (payload) {
 
-    const foundEmailOrPhone = await Staff.findOne ({$or: 
-    [{email: payload.email}, {phone: payload.phone}
+    const foundEmailOrPhone = await Staff.findOne ({$or: [
+        {email: payload.email},
+        {phone: payload.phone}
     ]})
     if (foundEmailOrPhone) {
     return responses.buildFailureResponse("Staff phone or email already registered", 400)
     } 
     // to hash a password
-    const saltRounds = 10;
-    const generatedSalt = await bcrypt.genSalt(saltRounds)
-    const hashedPassword = await bcrypt.hash(payload.password, generatedSalt)
+    // const saltRounds = 10;
+    // const generatedSalt = await bcrypt.genSalt(saltRounds)
+    // const hashedPassword = await bcrypt.hash(payload.password, generatedSalt)
 
-    payload.password = hashedPassword;
-    payload.role = "staff";
+    // payload.password = hashedPassword;
+    payload.role = "user";
     const savedStaff = await Staff.create(payload)
     return responses.buildSuccessResponse("Staff account created successfully", 201, savedStaff);
-}
+};
 
 
 const login = async (payload) => {
     try {
-        const foundUser = await Staff.findOne({ email: payload.email})
+        const foundUser = await Staff.findOne({ email: payload.email}).lean()
         if(!foundUser) {
             return responses.buildFailureResponse("User not found", 404)
-            //     message: "User not found",
-            //     status: "failure",
-            //     statusCode: 400
-            // }
         }
         if (foundUser.role !== "admin") {
             return responses.buildFailureResponse("Only admins are allowed", 403)
@@ -115,11 +88,7 @@ const login = async (payload) => {
         
         const foundPassword = await bcrypt.compare(payload.password, foundUser.password)
         if(!foundPassword) {
-             return responses.buildFailureResponse("Password Incorrect", 403)
-            //    { message: "Password incorrect",
-            //     status: "failure",
-            //     statusCode: 403
-            // }
+            return responses.buildFailureResponse("Password Incorrect", 403)
         }
 
         const token = jwt.sign({
@@ -132,25 +101,74 @@ const login = async (payload) => {
         )
         foundUser.accessToken = token
         return responses.buildSuccessResponse("Login Successful", 200, foundUser)
-    //    return {
-    //     message: "Login Successful",
-    //     status: "success",
-    //     data: foundUser,
-    //     accessToken: token,
-    //     statusCode: 200
-    //    }
     } catch (error) {
-         return responses.buildFailureResponse("Unable to login",  500)
-        //    { message: "Unable to Login",
-        //     status: "failure",
-        //     statusCode: 500
-        // }
+        return responses.buildFailureResponse("Unable to login",  500)
     }
-}
+};
+
+const fetchCompanies = async () => {
+    const foundStaff = await Company.find({});
+    if (!foundStaff) {
+        return responses.buildFailureResponse("Unable to find Staff", 400);
+    };
+    const allCompanies = foundStaff.length;
+    return responses.buildSuccessResponse(`Companies found are ${allCompanies}`, 200, foundStaff);
+};
+
+const forgotPassword = async (payload) => {
+    const emailFound = await Staff.findOne({ email: payload.email });
+    if(!emailFound) {
+        return responses.buildFailureResponse("Email not found", 400);
+    }
+    const resetPin = generateResetPin();
+    const updatedUser = await Staff.findByIdAndUpdate(
+        { _id: emailFound._id},
+        {resetPin: resetPin},
+        {new: true});
+    // console.log({updatedUser})
+    const forgotPasswordPayload = {
+        to: updatedUser.email,
+        subject: "RESET PASSWORD",
+        pin: resetPin
+    };
+    await sendMail.sendForgotPasswordMail(forgotPasswordPayload);
+    return responses.buildSuccessResponse("Forgot Password Updated Successfully", 200, updatedUser);
+};
+
+const resetPassword = async (payload) => {
+    /**
+     * Validate if the user exists with the reset pin
+     * Hash the new password
+     * Store the new hashed password
+     */
+
+    const foundUserAndPin = await Staff.findOne({
+        email: payload.email,
+        resetPin: payload.resetPin
+    });
+    if (!foundUserAndPin) {
+        return responses.buildFailureResponse("Reset Pin Invalid", 400);
+    }
+    // hashing the password
+    const saltRounds = 10;
+    const generatedSalt = await bcrypt.genSalt(saltRounds);
+
+    const hashedPassword = await bcrypt.hash(payload.password, generatedSalt);
+    const updatedUser = await Staff.findByIdAndUpdate(
+        {_id: foundUserAndPin._id},
+        {password: hashedPassword},
+        {resetPin: null},
+        {new: true}
+    );
+    return responses.buildSuccessResponse("Password reset successfully", 201, updatedUser);
+};
 
 module.exports = {
     createCompany,
     createStaff,
     createAdmin,
-    login
-}
+    login,
+    fetchCompanies,
+    forgotPassword,
+    resetPassword
+};
