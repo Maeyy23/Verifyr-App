@@ -5,7 +5,7 @@ const staffSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    lastNamme: {
+    lastName: {
         type: String,
         required: true
     },
@@ -30,21 +30,22 @@ const staffSchema = mongoose.Schema({
       enum: ["admin", "user"],
       default: "user"
     },
-    dateofBirth:  {
-        type: Date,
+    dateOfBirth:  {
+        type: String,
         required: true
     },
     company:  {
         type: mongoose.Types.ObjectId,
         ref: "Company",
         required: true
+    },
+    password: {
+        type: String
+    },
+    resetPin: {
+        type: Number
     }
-    // createdAt:  {
-    //     type: Date,
-    //     required: true,
-    // }, this is changed to a mongodb function that has a timestamp
 
-    
 }, {
     timestamps: true
 });
@@ -52,14 +53,4 @@ const staffSchema = mongoose.Schema({
 
 module.exports = mongoose.model("Staff", staffSchema);
 
-// const staffSchema = {
-//   firstName: "string",
-//   lastNamme: "string",
-//   phone: "string",
-//   email: "string",
-//   employeeId: "string",
-//   companyRole: "string",
-//   dateofBirth: "date",
-//   company: "string",
-//   createdAt: "date",
-// };
+

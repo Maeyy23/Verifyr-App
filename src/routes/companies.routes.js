@@ -7,7 +7,10 @@ const authMiddleware = require("../middlewares/auth");
 
 router.post('/create-account', companyController.createAccount);
 router.post('/create-admin', authMiddleware.authenticate, companyController.createAdmin);
+router.post('/create-staff', companyController.createStaff);
 router.post('/login', companyController.login);
-// router.post('/login', companyController.login);
+router.get('/allCompanies', companyController.getCompaniesControllers);
+router.post('/forgot-password', companyController.forgotPasswordControllers);
+router.post('/reset-password', companyController.resetPasswordControllers);
 
 module.exports = router;

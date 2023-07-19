@@ -1,4 +1,5 @@
 const jwt = require ("jsonwebtoken");
+const Staff = require ("../models/staff.model");
 
 async function authenticate(req, res, next) {
     try {
@@ -6,25 +7,27 @@ async function authenticate(req, res, next) {
         if (!authorization || !authorization.startsWith("Bearer ")) {
             return res.status(400).json({
                 message: "Authorization header must start with 'Bearer'",
-            status: "failure"
-        })
+                status: "failure"
+            })
         }
         const token = authorization.substring(7)
-        console.log({token})
+        
         const decodedUser = await jwt.decode(token)
-        console.log({decodedUser})
-        const foundStaff = await staff.findone ({_id: decodedUser._id})
-        console.log({foundStaff});
+        
+        const foundStaff = await Staff.findOne ({_id: decodedUser._id})
+        
         if (foundStaff.role !== "admin") {
             return res.status (400).json ({
                 message: "Only admins are allowed",
                 status: "failure"
             })
         }
+        req.user = foundStaff
         next()
     } catch (error) {
-        return res.status(error?.statusCode).send(error?.message)
+        return res.status(error?.statusCode || 500).send(error?.message || "Unable to authenticate")
     }
+    
 }
 
 module.exports = {

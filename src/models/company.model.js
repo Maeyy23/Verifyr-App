@@ -9,7 +9,6 @@ const companySchema = mongoose.Schema({
   address: {
     type: String,
     required: true,
-    unique: true
   },
   regNo: {
     type: String,
@@ -19,7 +18,6 @@ const companySchema = mongoose.Schema({
   contactEmail:{
     type: String,
     required: true,
-    unique: true
   },
   website: {
     type: String,
@@ -28,8 +26,7 @@ const companySchema = mongoose.Schema({
   },
   contactPhone: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   logo: {
     type: String,
@@ -48,18 +45,4 @@ const companySchema = mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model("Company", companySchema)
-
-
-
-
-
-// const companySchema = {
-//   name: "string", //required
-//   address: "string",
-//   cacNo: "string",
-//   contactEmail: "string",
-//   website: "string",
-//   contactPhone: "string",
-//   logo: "string",
-// };
+module.exports = mongoose.model("Company", companySchema);
