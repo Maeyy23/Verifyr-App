@@ -163,6 +163,34 @@ const resetPassword = async (payload) => {
     return responses.buildSuccessResponse("Password reset successfully", 201, updatedUser);
 };
 
+// const searchStaff = async (payload) =>{ 
+//     const staffName = await Staff.findOne({firstName: payload.firstName})
+//     if(!staffName){
+//         return responses.buildSuccessResponse("The staff you are looking for is ", 200, staffName);
+//     }
+//     // const foundStaff = await Staff.findOne 
+// };
+// to implement search endpoint
+const findStaff = async (query) => {
+    try {
+        const searchKeyword = query.search
+        ? {
+            $or: [
+                { firstName: {$regex: query.search, $options: "i"} },
+                { lastName: {$regex: query.search, $options: "i"} },
+                { email: {$regex: query.search, $options: "i"} },
+                { phone: {$regex: query.search, $options: "i"} },
+            ],
+            company: query.company,
+        } : {};
+        // const foundStaff = await Staff.find({...searchKeyword, Company: query.Company})
+        const foundStaff = await Staff.find(searchKeyword)
+        return responses.buildSuccessResponse("Staff found", 200, foundStaff);
+    } catch (error) {
+        console.log(error);
+    }
+};
+
 module.exports = {
     createCompany,
     createStaff,
@@ -170,5 +198,6 @@ module.exports = {
     login,
     fetchCompanies,
     forgotPassword,
-    resetPassword
+    resetPassword, 
+    findStaff
 };

@@ -12,5 +12,7 @@ router.post('/login', companyController.login);
 router.get('/allCompanies', companyController.getCompaniesControllers);
 router.post('/forgot-password', companyController.forgotPasswordControllers);
 router.post('/reset-password', companyController.resetPasswordControllers);
+router.get('/staff', companyController.findStaffControllers)
+
 
 module.exports = router;

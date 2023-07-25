@@ -35,6 +35,10 @@ const resetPasswordControllers = async (req, res) => {
   const data = await companyServices.resetPassword(req.body)
   res.status(data.statusCode).json(data)
 };
+const findStaffControllers = async (req, res) => {
+  const data = await companyServices.findStaff(req.query)
+  res.status(data.statusCode).json(data)
+};
 
 
 module.exports = {
@@ -44,5 +48,6 @@ module.exports = {
   createStaff,
   getCompaniesControllers,
   forgotPasswordControllers,
-  resetPasswordControllers
+  resetPasswordControllers,
+  findStaffControllers
 };
