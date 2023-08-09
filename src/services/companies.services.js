@@ -163,13 +163,6 @@ const resetPassword = async (payload) => {
     return responses.buildSuccessResponse("Password reset successfully", 201, updatedUser);
 };
 
-// const searchStaff = async (payload) =>{ 
-//     const staffName = await Staff.findOne({firstName: payload.firstName})
-//     if(!staffName){
-//         return responses.buildSuccessResponse("The staff you are looking for is ", 200, staffName);
-//     }
-//     // const foundStaff = await Staff.findOne 
-// };
 // to implement search endpoint
 const findStaff = async (query) => {
     try {

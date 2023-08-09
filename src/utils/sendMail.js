@@ -1,10 +1,10 @@
-const sgMail = require ('@sendgrid/mail');
+const sgMail = require("@sendgrid/mail");
 const dotenv = require("dotenv");
 dotenv.config();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendForgotPasswordMail = (mailPayload) => {
-    const textMail =`<!DOCTYPE html>
+  const textMail = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <style>
@@ -43,22 +43,22 @@ const sendForgotPasswordMail = (mailPayload) => {
    </div> 
 </body>
 </html>`;
-    const msg = {
-        to : mailPayload.to,
-        from: "joshuatobiajagbe@gmail.com",
-        subject: mailPayload.subject,
-        html: textMail
-    };
-    sgMail
+  const msg = {
+    to: mailPayload.to,
+    from: "joshuatobiajagbe@gmail.com",
+    subject: mailPayload.subject,
+    html: textMail,
+  };
+  sgMail
     .send(msg)
-    .then((response)=>{
-        console.log(response[0].statusCode);
-        console.log(response[0].headers);
+    .then((response) => {
+      console.log(response[0].statusCode);
+      console.log(response[0].headers);
     })
-    .catch ((error)=>{
-        console.error(error);
+    .catch((error) => {
+      console.error(error);
     });
 };
-module.exports ={
-    sendForgotPasswordMail
+module.exports = {
+  sendForgotPasswordMail,
 };
