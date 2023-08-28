@@ -6,6 +6,8 @@ const morgan = require("morgan");
 const company = require("./routes/companies.routes");
 const payment = require("./routes/payment.routes.js");
 const connectDB = require("./configs/database");
+const job = require("./utils/scheduler.js");
+const seedAdmin = require("./seeding/seeding.js");
 
 dotenv.config();
 const app = express();
@@ -27,6 +29,8 @@ app.use("/transaction", payment);
 
 // connecting to the database
 connectDB(process.env.MONGO_URI);
+job.start();
+seedAdmin();
 
 app.get("/", (req, res) => {
   res.status(200).json({
